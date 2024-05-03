@@ -17,9 +17,10 @@ public class GameManager extends JPanel implements Runnable {
     //Instantiate
     TileManager tileM = new TileManager(this);
     InputMapper intmap = new InputMapper();
-    Player player = new Player(this,intmap);
-    
-    
+    Player player = new Player(this, intmap);
+    Rect rect1 = new Rect(200,200,129,140);
+    Rect rect2 = new Rect(700,200,127,140);
+   
     
     int FPS = 60;
     private Thread thread;
@@ -34,6 +35,9 @@ public class GameManager extends JPanel implements Runnable {
         this.setFocusable(true);
         // Start listening for key events
         this.requestFocusInWindow();
+        
+    
+       
     }
 
     public void stop(){
@@ -70,11 +74,42 @@ public class GameManager extends JPanel implements Runnable {
     }
 
     public void update() {
+    	    	
+    	player.update(); // Update player position
     	
-       player.update(); // calling this method in the player class
-       
-       
-    }
+    	
+    	  player.boundingBox.x = player.x;
+    	    player.boundingBox.y = player.y;
+
+    	    // Update rect1 position to follow the player
+    	    rect1.x = player.x + 190;
+    	    rect1.y = player.y + 170;
+
+    
+
+    	    // Check for collisions between rect1 and rect2
+    	    if (rect1.overlaps(rect2)) {
+    	        // Handle collision between rect1 and rect2
+    	        // For example, you can move rect1 away from rect2 in each direction
+    	        if (rect1.cameFromAbove(rect2)) {
+    	            rect1.pushbackFrom(rect2);
+    	            System.out.print("collide");
+    	        } else if (rect1.cameFromBelow(rect2)) {
+    	            rect1.pushbackFrom(rect2);
+    	        } else if (rect1.cameFromLeftOf(rect2)) {
+    	            rect1.pushbackFrom(rect2);
+    	            System.out.print("collide");
+    	        } else if (rect1.cameFromRightOf(rect2)) {
+    	            rect1.pushbackFrom(rect2);
+    	        }
+    	    }
+     	}
+     
+		
+
+		
+		
+   
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -82,9 +117,11 @@ public class GameManager extends JPanel implements Runnable {
         
         tileM.draw(g2);
         player.draw(g2);
-        
-        
-        
+        g2.setColor(Color.RED);
+        rect1.draw(g2);
+        rect2.draw(g2);
+       
+   
         g2.dispose();
        
     }
