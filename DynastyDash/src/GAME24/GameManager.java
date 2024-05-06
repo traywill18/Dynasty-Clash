@@ -1,4 +1,3 @@
-// GameManager.java
 package GAME24;
 
 import java.awt.Color;
@@ -6,27 +5,26 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class GameManager extends JPanel implements Runnable {
 
     public static final int HEIGHT = 1920; // Adjusted height for demo purposes
-    public static final int WIDTH  = 1080; // Adjusted width for demo purposes
+    public static final int WIDTH = 1080; // Adjusted width for demo purposes
     public static final String TITLE = "Dynasty_Dash_Beta";
 
-    
-    //Instantiate
+    // Instantiate
     TileManager tileM = new TileManager(this);
     InputMapper intmap = new InputMapper();
     Player player = new Player(this, intmap);
-    Rect rect1 = new Rect(200,200,129,140);
-    Rect rect2 = new Rect(700,200,127,140);
-   
-    
+    Rect rect1 = new Rect(200, 200, 129, 140);
+    Rect2 rect2 = new Rect2(700, 200, 127, 140);
+
     int FPS = 60;
     private Thread thread;
     private boolean running = false;
-
-    
+    private boolean dragging = false;
 
     public GameManager() {
         // Add the InputMapper as a KeyListener to listen for key events
@@ -35,15 +33,34 @@ public class GameManager extends JPanel implements Runnable {
         this.setFocusable(true);
         // Start listening for key events
         this.requestFocusInWindow();
-        
-    
-       
+
+        // Add a MouseListener and MouseMotionListener to the panel
+        this.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                // Check if the mouse was pressed inside rect2
+                rect2.onMousePressed(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                dragging = false;
+            }
+        });
+
+        this.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                // If dragging is true, move rect2 to the mouse location
+                rect2.onMouseDragged(e);
+            }
+        });
+
     }
 
-    public void stop(){
+    public void stop() {
         if (!running)
             return;
-        running  = false;
+        running = false;
         try {
             thread.join();
         } catch (Exception e) {
@@ -56,7 +73,7 @@ public class GameManager extends JPanel implements Runnable {
         double drawInterval = 1000000000.0 / FPS;
         double nextDrawTime = System.nanoTime() + drawInterval;
 
-        while(running) {
+        while (running) {
             update();
             repaint();
             try {
@@ -74,56 +91,45 @@ public class GameManager extends JPanel implements Runnable {
     }
 
     public void update() {
-    	    	
-    	player.update(); // Update player position
-    	
-    	
-    	  player.boundingBox.x = player.x;
-    	    player.boundingBox.y = player.y;
+        player.update();
 
-    	    // Update rect1 position to follow the player
-    	    rect1.x = player.x + 190;
-    	    rect1.y = player.y + 170;
+        player.boundingBox.x = player.x;
+        player.boundingBox.y = player.y;
 
-    
+        // Update rect1 position to follow the player
+        rect1.x = player.x + 190;
+        rect1.y = player.y + 170;
 
-    	    // Check for collisions between rect1 and rect2
-    	    if (rect1.overlaps(rect2)) {
-    	        // Handle collision between rect1 and rect2
-    	        // For example, you can move rect1 away from rect2 in each direction
-    	        if (rect1.cameFromAbove(rect2)) {
-    	            rect1.pushbackFrom(rect2);
-    	            System.out.print("collide");
-    	        } else if (rect1.cameFromBelow(rect2)) {
-    	            rect1.pushbackFrom(rect2);
-    	        } else if (rect1.cameFromLeftOf(rect2)) {
-    	            rect1.pushbackFrom(rect2);
-    	            System.out.print("collide");
-    	        } else if (rect1.cameFromRightOf(rect2)) {
-    	            rect1.pushbackFrom(rect2);
-    	        }
-    	    }
-     	}
-     
-		
+        // Check for collisions between rect1 and rect2
+        if (rect1.overlaps(rect2)) {
+            // Handle collision between rect1 and rect2
+            // For example, you can move rect1 away from rect2 in each direction
+            if (rect1.cameFromAbove(rect2)) {
+                rect1.pushbackFrom(rect2);
 
-		
-		
-   
+            } else if (rect1.cameFromBelow(rect2)) {
+                rect1.pushbackFrom(rect2);
+            } else if (rect1.cameFromLeftOf(rect2)) {
+                rect1.pushbackFrom(rect2);
+            } else if (rect1.cameFromRightOf(rect2)) {
+                rect1.pushbackFrom(rect2);
+
+            }
+        }
+    }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;  
-        
+        Graphics2D g2 = (Graphics2D) g;
+
         tileM.draw(g2);
         player.draw(g2);
         g2.setColor(Color.RED);
         rect1.draw(g2);
         rect2.draw(g2);
-       
-   
+
         g2.dispose();
-       
+
     }
 
     public static void main(String[] args) {
